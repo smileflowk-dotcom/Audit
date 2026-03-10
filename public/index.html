@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audit Offert — Entredonneur</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #6B4510;
+    --gold-light: #9A6820;
+    --gold-dim: #B89050;
+    --bg: #EDE5D8;
+    --white: #FFFFFF;
+    --card: #FDFAF5;
+    --border: rgba(107,69,16,0.12);
+    --border-strong: rgba(107,69,16,0.28);
+    --border-active: rgba(107,69,16,0.7);
+    --text: #18140E;
+    --text-dim: #4A4038;
+    --text-dimmer: #8C8278;
+    --selected-bg: #F0E8D8;
+    --selected-border: #1A4A2E;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 18px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* Grain */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  /* ── LAYOUT ── */
+  .shell {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    padding: 52px 0 48px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 52px;
+  }
+
+  .brand {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.35em;
+    color: var(--gold-light);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .header-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(32px, 6vw, 52px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .header-title span { color: var(--gold); }
+
+  .header-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--text-dim);
+    margin-bottom: 28px;
+  }
+
+  .header-promise {
+    display: inline-flex;
+    gap: 24px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--text-dimmer);
+    text-transform: uppercase;
+  }
+
+  .header-promise span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .header-promise span::before {
+    content: '✓';
+    color: var(--gold);
+  }
+
+  /* ── PROGRESS ── */
+  .progress-wrap {
+    margin-bottom: 48px;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    padding: 16px 0 20px;
+    z-index: 10;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .progress-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .progress-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--text-dimmer);
+    text-transform: uppercase;
+  }
+
+  .progress-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+  }
+
+  .progress-bar {
+    height: 2px;
+    background: var(--border);
+    border-radius: 1px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    border-radius: 1px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0%;
+  }
+
+  /* ── STEPS ── */
+  .step {
+    display: none;
+    animation: stepIn 0.4s ease forwards;
+  }
+
+  .step.active { display: block; }
+
+  @keyframes stepIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── BLOC HEADER ── */
+  .bloc-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .bloc-tag::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    max-width: 120px;
+  }
+
+  .question-text {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(20px, 3.5vw, 28px);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .question-hint {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: var(--text-dimmer);
+    margin-bottom: 32px;
+  }
+
+  /* ── CHOICE BUTTONS ── */
+  .choices {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 36px;
+  }
+
+  .choice-btn {
+    background: var(--white);
+    border: 2px solid var(--border);
+    padding: 20px 28px;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 60px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-dim);
+    line-height: 1.3;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .choice-btn::before { display: none; }
+
+  .choice-btn:hover {
+    border-color: var(--border-strong);
+    background: rgba(26,74,46,0.06);
+    color: var(--text);
+    transform: scale(1.01);
+    box-shadow: 0 4px 16px rgba(107,69,16,0.08);
+  }
+
+  .choice-btn.selected {
+    background: #1A4A2E;
+    border-color: #1A4A2E;
+    color: #F7F3EC;
+  }
+
+  .choice-indicator {
+    width: 26px; height: 26px;
+    border: 2px solid var(--border-strong);
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    background: var(--white);
+  }
+
+  .choice-btn.selected .choice-indicator {
+    background: rgba(255,255,255,0.25);
+    border-color: rgba(255,255,255,0.6);
+  }
+
+  .choice-btn.selected .choice-indicator::after {
+    content: '';
+    width: 8px; height: 8px;
+    background: white;
+    border-radius: 50%;
+  }
+
+  /* Multi-select */
+  .choice-btn.multi .choice-indicator {
+    border-radius: 3px;
+  }
+
+  .choice-btn.multi.selected .choice-indicator {
+    background: rgba(255,255,255,0.25);
+    border-color: rgba(255,255,255,0.6);
+  }
+
+  .choice-btn.multi.selected .choice-indicator::after {
+    content: '✓';
+    font-size: 13px;
+    color: white;
+    border-radius: 0;
+    width: auto; height: auto;
+    background: none;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* ── TEXTAREA ── */
+  .free-input {
+    width: 100%;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 18px 20px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    color: var(--text);
+    line-height: 1.6;
+    resize: none;
+    min-height: 120px;
+    transition: border-color 0.2s;
+    margin-bottom: 36px;
+    outline: none;
+  }
+
+  .free-input::placeholder {
+    color: var(--text-dimmer);
+    font-style: italic;
+  }
+
+  .free-input:focus {
+    border-color: var(--border-strong);
+    box-shadow: 0 0 0 3px rgba(107,69,16,0.06);
+  }
+
+  /* ── NAVIGATION ── */
+  .nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding-top: 8px;
+  }
+
+  .btn-back {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--text-dimmer);
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 0;
+    transition: color 0.2s;
+    text-transform: uppercase;
+  }
+
+  .btn-back:hover { color: var(--text); }
+  .btn-back:disabled { opacity: 0.3; cursor: default; }
+
+  .btn-next {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #F7F3EC;
+    background: #1A4A2E;
+    border: none;
+    padding: 14px 32px;
+    border-radius: 60px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .btn-next:hover {
+    background: #245E38;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(26,74,46,0.25);
+  }
+
+  .btn-next:disabled {
+    opacity: 0.4;
+    cursor: default;
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* ── CONFIRMATION ── */
+  .confirmation {
+    display: none;
+    text-align: center;
+    padding: 60px 0;
+    animation: stepIn 0.5s ease forwards;
+  }
+
+  .confirmation.active { display: block; }
+
+  .confirm-icon {
+    width: 64px; height: 64px;
+    border: 1.5px solid var(--border-strong);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 28px;
+    font-size: 24px;
+  }
+
+  .confirm-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(26px, 4vw, 38px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    margin-bottom: 12px;
+    line-height: 1.1;
+  }
+
+  .confirm-title span { color: var(--gold); }
+
+  .confirm-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--text-dim);
+    max-width: 480px;
+    margin: 0 auto 40px;
+    line-height: 1.7;
+  }
+
+  .confirm-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #1A4A2E;
+    color: #F7F3EC;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 16px 36px;
+    border-radius: 60px;
+    text-decoration: none;
+    transition: all 0.2s;
+    margin-bottom: 16px;
+    display: block;
+    max-width: 360px;
+    margin: 0 auto 12px;
+    text-align: center;
+  }
+
+  .confirm-cta:hover {
+    background: #245E38;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(26,74,46,0.2);
+  }
+
+  .confirm-note {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--text-dimmer);
+    text-transform: uppercase;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    border-top: 1px solid var(--border);
+    padding: 28px 0 0;
+    margin-top: 60px;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--text-dimmer);
+    text-transform: uppercase;
+  }
+
+
+  /* ── INFO FIELDS ── */
+  .info-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .field-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dimmer);
+  }
+
+  .field-input {
+    background: var(--white);
+    border: 2px solid var(--border);
+    border-radius: 60px;
+    padding: 16px 24px;
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+  }
+
+  .field-input::placeholder {
+    color: var(--text-dimmer);
+    font-weight: 400;
+  }
+
+  .field-input:focus {
+    border-color: #1A4A2E;
+    box-shadow: 0 0 0 3px rgba(26,74,46,0.08);
+  }
+
+  @media (max-width: 500px) {
+    .header-promise { gap: 14px; flex-wrap: wrap; justify-content: center; }
+    .question-text { font-size: 20px; }
+    .choice-btn { font-size: 16px; padding: 14px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="brand">Entredonneur · Kamal</div>
+    <h1 class="header-title">Audit <span>Offert</span></h1>
+    <p class="header-sub">L'appel que tu aurais dû avoir il y a 6 mois.</p>
+    <div class="header-promise">
+      <span>Gratuit</span>
+      <span>Sans engagement</span>
+      <span>4 min</span>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-top">
+      <span class="progress-label">Progression</span>
+      <span class="progress-count" id="progressCount">1 / 14</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <!-- ── ÉTAPE 1 ── -->
+  <div class="step active" id="step-1">
+    <div class="bloc-tag">Qui tu es</div>
+    <div class="question-text">Tu es plutôt…</div>
+    <div class="question-hint">Choisis ce qui te correspond le mieux.</div>
+    <div class="choices" data-name="profil" data-type="single">
+      <button class="choice-btn" data-value="coach">
+        Coach · Thérapeute · Accompagnant
+      </button>
+      <button class="choice-btn" data-value="consultant">
+        Consultant · Expert · Formateur
+      </button>
+      <button class="choice-btn" data-value="autre">
+        Autre profil
+      </button>
+    </div>
+    <div class="nav">
+      <button class="btn-back" disabled>← Retour</button>
+      <button class="btn-next" id="next-1" disabled>Continuer →</button>
+    </div>
+  </div>
+
+  <!-- ── ÉTAPE 2 ── -->
+  <div class="step" id="step-2">
+    <div class="bloc-tag">Qui tu es</div>
+    <div class="question-text">Depuis combien de temps tu exerces ?</div>
+    <div class="question-hint">Pas d'inquiétude — il n'y a pas de bonne réponse.</div>
+    <div class="choices" data-name="anciennete" data-type="single">
+      <button class="choice-btn" data-value="debutant">
+        Moins de 6 mois
+      </button>
+      <button class="choice-btn" data-value="intermediaire">
+        6 mois à 2 ans
+      </button>
+      <button class="choice-btn" data-value="experimente">
+        Plus de 2 ans
+      </button>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(1)">← Retour</button>
+      <button class="btn-next" id="next-2" disabled>Continuer →</button>
+    </div>
+  </div>
+
+  <!-- ── ÉTAPE 3 ── -->
+  <div class="step" id="step-3">
+    <div class="bloc-tag">Où tu en es</div>
+    <div class="question-text">Ton chiffre d'affaires mensuel actuel ?</div>
+    <div class="question-hint">Ordre de grandeur suffisant.</div>
+    <div class="choices" data-name="ca" data-type="single">
+      <button class="choice-btn" data-value="moins5k">
+        Moins de 5 000€ / mois
+      </button>
+      <button class="choice-btn" data-value="5k10k">
+        Entre 5 000 et 10 000€ / mois
+      </button>
+      <button class="choice-btn" data-value="plus10k">
+        Plus de 10 000€ / mois
+      </button>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(2)">← Retour</button>
+      <button class="btn-next" id="next-3" disabled>Continuer →</button>
+    </div>
+  </div>
+
+  <!-- ── ÉTAPE 4 ── -->
+  <div class="step" id="step-4">
+    <div class="bloc-tag">Où tu en es</div>
+    <div class="question-text">Ton problème principal en ce moment ?</div>
+    <div class="question-hint">Choisis celui qui résonne le plus.</div>
+    <div class="choices" data-name="probleme" data-type="single">
+      <button class="choice-btn" data-value="clients">
+        Je n'ai pas assez de clients
+      </button>
+      <button class="choice-btn" data-value="sous-paye">
+        J'ai des clients mais je suis sous-payé
+      </button>
+      <button class="choice-btn" data-value="epuise">
+        Je suis épuisé par mon activité
+      </button>
+      <button class="choice-btn" data-value="direction">
+        Je ne sais pas comment passer à l'étape suivante
+      </button>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(3)">← Retour</button>
+      <button class="btn-next" id="next-4" disabled>Continuer →</button>
+    </div>
+  </div>
+
+  <!-- ── ÉTAPE 5 ── -->
+  <div class="step" id="step-5">
+    <div class="bloc-tag">Où tu en es</div>
+    <div class="question-text">Qu'est-ce que tu as déjà essayé pour avancer ?</div>
+    <div class="question-hint">2 ou 3 lignes suffisent.</div>
+    <textarea class="free-input" id="deja-essaye" placeholder="Formations, coaching, stratégies, outils… ce qui t'a aidé ou non." rows="4"></textarea>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(4)">← Retour</button>
+      <button class="btn-next" id="next-5" onclick="goTo(6)">Continuer →</button>
+    </div>
+  </div>
+
+  <!-- ── ÉTAPE 6 ── -->
+  <div class="step" id="step-6">
+    <div class="bloc-tag">Comment tu te sens</div>
+    <div class="question-text">En ce moment, comment tu te sens dans ton business ?</div>
+    <div class="question-hint">Tu peux choisir plusieurs réponses.</div>
+    <div class="choices" data-name="ressenti" data-type="multi">
+      <button class="choice-btn multi" data-value="bloque">
+        Motivé mais bloqué — je tourne en rond
+      </button>
+      <button class="choice-btn multi" data-value="epuise">
+        Épuisé — je donne beaucoup sans retour
+      </button>
+      <button class="choice-btn multi" data-value="confus">
+        Confus — je ne sais plus quoi prioriser
+      </button>
+      <button class="choice-btn multi" data-value="frustre">
+        Frustré — je vois les résultats des autres, pas les miens
+      </button>
+      <button class="choice-btn multi" data-value="seul">
+        Seul — je n'ai personne avec qui vraiment en parler
+      </button>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(5)">← Retour</button>
+      <button class="btn-next" id="next-6" disabled onclick="goTo(7)">Continuer →</button>
+    </div>
+  </div>
+
+  <!-- ── ÉTAPE 7 ── -->
+  <div class="step" id="step-7">
+    <div class="bloc-tag">Comment tu te sens</div>
+    <div class="question-text">Quelle émotion domine quand tu penses à ton business ?</div>
+    <div class="question-hint">Celle qui revient le plus souvent.</div>
+    <div class="choices" data-name="emotion" data-type="single">
+      <button class="choice-btn" data-value="espoir">
+        L'espoir — je sens que quelque chose est possible
+      </button>
+      <button class="choice-btn" data-value="doute">
+        Le doute — je remets tout en question
+      </button>
+      <button class="choice-btn" data-value="peur">
+        La peur — j'ai peur de me tromper de direction
+      </button>
+      <button class="choice-btn" data-value="honte">
+        La honte — je n'ose pas dire où j'en suis vraiment
+      </button>
+      <button class="choice-btn" data-value="impatience">
+        L'impatience — je veux que ça avance maintenant
+      </button>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(6)">← Retour</button>
+      <button class="btn-next" id="next-7" disabled>Continuer →</button>
+    </div>
+  </div>
+
+  <!-- ── ÉTAPE 8 ── -->
+  <div class="step" id="step-8">
+    <div class="bloc-tag">Comment tu te sens</div>
+    <div class="question-text">Si tu devais décrire ton état en un mot…</div>
+    <div class="question-hint">Le premier mot qui vient. Pas le plus joli.</div>
+    <textarea class="free-input" id="mot-etat" placeholder="Un mot. Comme il vient." rows="2" style="min-height:72px;"></textarea>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(7)">← Retour</button>
+      <button class="btn-next" id="next-8" onclick="goTo(9)">Continuer →</button>
+    </div>
+  </div>
+
+  <!-- ── ÉTAPE 9 ── -->
+  <div class="step" id="step-9">
+    <div class="bloc-tag">Ton écosystème actuel</div>
+    <div class="question-text">Quels outils et présences tu as déjà en place ?</div>
+    <div class="question-hint">Coche tout ce qui existe, même si c'est incomplet.</div>
+    <div class="choices" data-name="outils" data-type="multi">
+      <button class="choice-btn multi" data-value="instagram">Page Instagram active</button>
+      <button class="choice-btn multi" data-value="facebook">Page ou groupe Facebook</button>
+      <button class="choice-btn multi" data-value="linkedin">Profil LinkedIn</button>
+      <button class="choice-btn multi" data-value="site">Site web ou page de vente</button>
+      <button class="choice-btn multi" data-value="email">Liste email / newsletter</button>
+      <button class="choice-btn multi" data-value="skool">Communauté Skool ou équivalent</button>
+      <button class="choice-btn multi" data-value="rien">Rien de structuré pour l'instant</button>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(8)">← Retour</button>
+      <button class="btn-next" id="next-9" disabled onclick="goTo(10)">Continuer →</button>
+    </div>
+  </div>
+
+  <!-- ── ÉTAPE 10 ── -->
+  <div class="step" id="step-10">
+    <div class="bloc-tag">Ton écosystème actuel</div>
+    <div class="question-text">Tu utilises uniquement l'organique ou tu fais aussi de la pub payante ?</div>
+    <div class="question-hint">Sois honnête — il n'y a pas de mauvaise réponse.</div>
+    <div class="choices" data-name="trafic" data-type="single">
+      <button class="choice-btn" data-value="organique">100% organique — pas de pub</button>
+      <button class="choice-btn" data-value="pub">Je fais de la pub payante (Meta, Google…)</button>
+      <button class="choice-btn" data-value="les-deux">Les deux — organique + pub</button>
+      <button class="choice-btn" data-value="rien">Je ne fais pas encore de communication active</button>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(9)">← Retour</button>
+      <button class="btn-next" id="next-10" disabled onclick="goTo(11)">Continuer →</button>
+    </div>
+  </div>
+
+    <!-- ── ÉTAPE 11 ── -->
+  <div class="step" id="step-11">
+    <div class="bloc-tag">Ce que tu veux vraiment</div>
+    <div class="question-text">Dans 6 mois, c'est quoi le résultat concret que tu veux atteindre ?</div>
+    <div class="question-hint">Sois précis. Un chiffre, une situation, une liberté.</div>
+    <textarea class="free-input" id="resultat-6mois" placeholder="Ex : signer 3 clients premium à 2 000€, quitter mon emploi, atteindre 5 000€/mois réguliers…" rows="4"></textarea>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(10)">← Retour</button>
+      <button class="btn-next" id="next-11" onclick="goTo(12)">Continuer →</button>
+    </div>
+  </div>
+
+  <!-- ── ÉTAPE 12 ── -->
+  <div class="step" id="step-12">
+    <div class="bloc-tag">Ce que tu veux vraiment</div>
+    <div class="question-text">Qu'est-ce qui t'a empêché d'y arriver jusqu'ici ?</div>
+    <div class="question-hint">Pas la version stratégique. La vraie raison.</div>
+    <textarea class="free-input" id="vraie-raison" placeholder="Celle que tu n'as pas encore écrite quelque part." rows="4"></textarea>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(11)">← Retour</button>
+      <button class="btn-next" id="next-12" onclick="goTo(13)">Voir mon créneau →</button>
+    </div>
+  </div>
+
+  <!-- ── ÉTAPE 13 ── -->
+  <!-- ── ÉTAPE 13 ── -->
+  <div class="step" id="step-13">
+    <div class="bloc-tag">Presque là</div>
+    <div class="question-text">Avant de continuer, à qui j'ai l'honneur ?</div>
+    <div class="question-hint">Ces informations restent confidentielles et ne servent qu'à préparer ton audit.</div>
+
+    <div class="info-fields">
+      <div class="field-group">
+        <label class="field-label">Prénom</label>
+        <input type="text" class="field-input" id="prenom" placeholder="Ton prénom" autocomplete="given-name">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Nom</label>
+        <input type="text" class="field-input" id="nom" placeholder="Ton nom" autocomplete="family-name">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Adresse email</label>
+        <input type="email" class="field-input" id="email" placeholder="ton@email.com" autocomplete="email">
+      </div>
+    </div>
+
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(12)">← Retour</button>
+      <button class="btn-next" id="next-13" disabled onclick="goTo(14)">Continuer →</button>
+    </div>
+  </div>
+
+  <div class="step" id="step-14">
+    <div class="bloc-tag">Qualification finale</div>
+    <div class="question-text">Une dernière chose avant de réserver.</div>
+    <div class="question-hint">Cet audit est un espace d'échange sincère — pas un appel commercial. Si à l'issue de notre conversation une solution te correspond, es-tu prêt à investir en toi pour avancer ?</div>
+    <div class="choices" data-name="qualification" data-type="single">
+      <button class="choice-btn" data-value="oui" onclick="handleQualification('oui')">
+        ✦ Oui — si ça me correspond, je suis prêt à passer à l'action
+      </button>
+      <button class="choice-btn" data-value="peut-etre" onclick="handleQualification('peut-etre')">
+        Peut-être — ça dépend de ce que tu proposes
+      </button>
+      <button class="choice-btn" data-value="non" onclick="handleQualification('non')">
+        Non — je suis juste là pour explorer pour l'instant
+      </button>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="goTo(13)">← Retour</button>
+      <button class="btn-next" id="next-14" disabled>Voir mon créneau →</button>
+    </div>
+  </div>
+
+  <!-- ── CONFIRMATION OUI / PEUT-ÊTRE ── -->
+  <!-- ── CONFIRMATION OUI / PEUT-ÊTRE ── -->
+  <div class="confirmation" id="confirmation">
+    <!-- Version OUI / PEUT-ÊTRE -->
+    <div id="confirm-yes">
+      <div class="confirm-icon">✦</div>
+      <h2 class="confirm-title">C'est <span>noté.</span></h2>
+      <p class="confirm-text">
+        Tes réponses m'ont donné une image claire de là où tu en es.<br>
+        Il ne reste qu'une chose — choisir ton créneau.
+      </p>
+      <a href="https://calendly.com/d/cttq-v42-qnt" target="_blank" class="confirm-cta">
+        Réserver mon créneau d'audit →
+      </a>
+      <p class="confirm-note">30 min · Gratuit · Sans engagement</p>
+    </div>
+
+    <!-- Version NON -->
+    <div id="confirm-no" style="display:none;">
+      <div class="confirm-icon">◇</div>
+      <h2 class="confirm-title">Merci pour <span>ta sincérité.</span></h2>
+      <p class="confirm-text">
+        Ce n'est peut-être pas le bon moment pour un appel.<br>
+        La communauté Entredonneur est un espace pour avancer à ton rythme — sans pression, sans engagement.
+      </p>
+      <a href="https://www.skool.com/entre-donneur-4684/about?" target="_blank" class="confirm-cta">
+        Rejoindre la communauté Entredonneur →
+      </a>
+      <p class="confirm-note">Accès gratuit · Communauté de coachs & entrepreneurs conscients</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    Entredonneur · © Kamal · Audit Offert
+  </div>
+
+</div><!-- /shell -->
+
+<script>
+  const TOTAL = 14;
+  let current = 1;
+  const answers = {};
+
+  // ── INIT ──
+  updateProgress();
+
+  // ── CHOICE BUTTONS ──
+  document.querySelectorAll('.choices').forEach(group => {
+    const type = group.dataset.type;
+    const name = group.dataset.name;
+    const stepEl = group.closest('.step');
+    const stepNum = parseInt(stepEl.id.replace('step-', ''));
+    const nextBtn = document.getElementById(`next-${stepNum}`);
+
+    group.querySelectorAll('.choice-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (type === 'single') {
+          group.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          answers[name] = btn.dataset.value;
+          if (nextBtn) nextBtn.disabled = false;
+        } else {
+          btn.classList.toggle('selected');
+          const selected = [...group.querySelectorAll('.choice-btn.selected')].map(b => b.dataset.value);
+          answers[name] = selected;
+          if (nextBtn) nextBtn.disabled = selected.length === 0;
+        }
+      });
+    });
+  });
+
+  // ── NEXT BUTTONS (single choice steps) ──
+  [1,2,3,4,7,10].forEach(n => {
+    const btn = document.getElementById(`next-${n}`);
+    if (btn) btn.addEventListener('click', () => goTo(n + 1));
+  });
+
+
+  // ── STEP 13 FIELD VALIDATION ──
+  function validateStep13() {
+    const prenom = document.getElementById('prenom')?.value.trim();
+    const nom = document.getElementById('nom')?.value.trim();
+    const email = document.getElementById('email')?.value.trim();
+    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const btn = document.getElementById('next-13');
+    if (btn) btn.disabled = !(prenom && nom && emailValid);
+  }
+
+  ['prenom','nom','email'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => {
+      answers[id] = el.value.trim();
+      validateStep13();
+    });
+  });
+
+  // ── QUALIFICATION LOGIC ──
+  function handleQualification(val) {
+    answers['qualification'] = val;
+    const nextBtn = document.getElementById('next-14');
+    nextBtn.disabled = false;
+    nextBtn.onclick = () => {
+      if (val === 'non') {
+        showConfirmation('non');
+      } else {
+        showConfirmation('oui');
+      }
+    };
+  }
+
+  async function showConfirmation(type) {
+    document.getElementById(`step-${current}`)?.classList.remove('active');
+    document.getElementById('progressWrap').style.opacity = '0';
+    document.getElementById('confirmation').classList.add('active');
+    if (type === 'non') {
+      document.getElementById('confirm-yes').style.display = 'none';
+      document.getElementById('confirm-no').style.display = 'block';
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Collect free text answers
+    answers['deja-essaye'] = document.getElementById('deja-essaye')?.value || '';
+    answers['mot-etat'] = document.getElementById('mot-etat')?.value || '';
+    answers['resultat-6mois'] = document.getElementById('resultat-6mois')?.value || '';
+    answers['vraie-raison'] = document.getElementById('vraie-raison')?.value || '';
+
+    // Send to backend
+    try {
+      await fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(answers)
+      });
+    } catch(e) {
+      console.log('Erreur envoi:', e);
+    }
+  }
+
+  // ── NAVIGATION ──
+  function goTo(n) {
+    document.getElementById(`step-${current}`)?.classList.remove('active');
+    current = n;
+    const next = document.getElementById(`step-${current}`);
+    if (next) {
+      next.classList.add('active');
+      updateProgress();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+
+
+  function updateProgress() {
+    const pct = ((current - 1) / TOTAL) * 100;
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressCount').textContent = `${current} / ${TOTAL}`;
+  }
+</script>
+</body>
+</html>
